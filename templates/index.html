@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Our Valentine 💖</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+body {
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  overflow-x: hidden;
+}
+
+.bg-valentine {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg,#ff758c,#ff7eb3,#a18cd1,#fad0c4);
+  background-size: 300% 300%;
+  animation: bgMove 12s ease infinite;
+}
+
+@keyframes bgMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(25px);
+  border-radius: 30px;
+  border: 1px solid rgba(255,255,255,0.3);
+  box-shadow: 0 25px 60px rgba(0,0,0,0.25);
+  animation: floatCard 6s ease-in-out infinite;
+}
+
+@keyframes floatCard {
+  0%,100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.romantic-title {
+  font-family: 'Great Vibes', cursive;
+  font-size: 3rem;
+  background: linear-gradient(90deg,#f8f5f5,#ed3305,#fff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 3s infinite linear;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200px; }
+  100% { background-position: 200px; }
+}
+
+.premium-btn {
+  transition: all 0.3s ease;
+  border-radius: 9999px;
+  font-weight: 600;
+  animation: pulseGlow 2s infinite;
+}
+
+.premium-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+}
+
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 10px rgba(255,255,255,0.3); }
+  50% { box-shadow: 0 0 25px rgba(255,255,255,0.6); }
+  100% { box-shadow: 0 0 10px rgba(255,255,255,0.3); }
+}
+
+.glow-green {
+  background: linear-gradient(135deg,#00c853,#00e676);
+  box-shadow: 0 0 20px rgba(0,200,83,0.6);
+}
+
+.glow-yellow {
+  background: linear-gradient(135deg,#f2f0e9,#d1d1cd);
+  box-shadow: 0 0 20px rgba(240, 240, 238, 0.6);
+}
+
+.fixed-img {
+  width: 340px;
+  height: 340px;
+  object-fit: cover;
+  border-radius: 25px;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+  opacity: 1;
+  animation: slowZoom 12s ease-in-out infinite alternate;
+}
+
+@keyframes slowZoom {
+  from { transform: scale(1); }
+  to { transform: scale(1.05); }
+}
+
+/* Fade animation for GIF ↔ Video */
+.fade { opacity: 0; transition: opacity 0.4s ease-in-out; }
+.show { opacity: 1; transition: opacity 0.4s ease-in-out; }
+
+</style>
+</head>
+
+<body>
+
+<audio id="bgMusic" autoplay loop>
+  <source src="{{ url_for('static', filename='music/romantic.mp3') }}" type="audio/mpeg">
+</audio>
+
+<div class="bg-valentine">
+<div class="glass-card flex flex-col items-center text-center p-8 max-w-4xl w-[90%]">
+
+<!-- Hi Hari Text -->
+
+<!-- MEDIA -->
+<div id="mediaContainer" class="mb-6">
+  <img id="imageDisplay"
+       src="{{ url_for('static', filename='images/image1.gif') }}"
+       class="fixed-img show transition-all duration-500" />
+
+  <video id="videoDisplay"
+         class="fixed-img transition-all duration-500"
+         style="display:none;"
+         autoplay loop muted playsinline>
+    <source id="videoSource" src="" type="video/mp4">
+  </video>
+</div>
+<h1 class="text-white text-4xl font-bold mb-4 drop-shadow-lg">Hi Hari Prasad💛</h2>
+
+<h2 id="valentineQuestion"
+class="romantic-title text-white mb-8 drop-shadow-lg">
+Will you be my Valentine? 💕
+</h2>
+
+<div id="responseButtons" class="flex flex-col items-center gap-6 mt-4 w-full">
+<div class="flex gap-8 justify-center flex-wrap">
+
+<button id="yesButton"
+class="premium-btn glow-green px-10 py-4 text-lg text-white">
+Yes 💚
+</button>
+
+<button id="noButton"
+class="premium-btn glow-yellow px-10 py-4 text-lg text-black">
+No 💔
+</button>
+
+</div>
+</div>
+
+</div>
+</div>
+
+<script>
+(() => {
+
+const music = document.getElementById("bgMusic");
+document.addEventListener("click", () => {
+  music.play().catch(() => {});
+}, { once: true });
+
+const yesBtn = document.getElementById("yesButton");
+const noBtn = document.getElementById("noButton");
+
+const img = document.getElementById("imageDisplay");
+const video = document.getElementById("videoDisplay");
+const videoSource = document.getElementById("videoSource");
+
+const text = document.getElementById("valentineQuestion");
+const responseButtons = document.getElementById("responseButtons");
+
+/* Smooth Fade Media Switch */
+function showMedia(src) {
+  if (src.includes(".mp4")) {
+    img.classList.remove("show"); img.classList.add("fade");
+    setTimeout(() => {
+      img.style.display = "none";
+      video.style.display = "block";
+      video.classList.remove("fade"); video.classList.add("show");
+      videoSource.src = src;
+      video.load(); video.play().catch(()=>{});
+    }, 300);
+  } else {
+    video.classList.remove("show"); video.classList.add("fade");
+    setTimeout(() => {
+      video.pause(); video.style.display = "none";
+      img.style.display = "block"; img.classList.remove("fade"); img.classList.add("show");
+      img.src = src;
+    }, 300);
+  }
+}
+
+const images = [
+"{{ url_for('static', filename='images/image1.gif') }}",
+"{{ url_for('static', filename='images/image2.gif') }}",
+"{{ url_for('static', filename='images/image3.gif') }}",
+"{{ url_for('static', filename='images/image4.gif') }}",
+"{{ url_for('static', filename='images/image5.gif') }}",
+"{{ url_for('static', filename='images/image6.gif') }}",
+"{{ url_for('static', filename='images/image7.mp4') }}"
+];
+
+const noTexts = [
+"വേണ്ട 😭",
+"ഉറപ്പാണോ 🥺",
+"Pookie please 💔",
+"അരുത് 😢",
+"ഞാൻ കരയും..."
+];
+
+let count = 0;
+let paddingSize = 20;
+let fontSize = 18;
+let accepted = false;
+
+noBtn.addEventListener("click", () => {
+if (count >= noTexts.length) return;
+if (images[count + 1]) showMedia(images[count + 1]);
+noBtn.innerText = noTexts[count];
+paddingSize += 6; fontSize += 2;
+yesBtn.style.padding = `${paddingSize}px ${paddingSize+16}px`;
+yesBtn.style.fontSize = `${fontSize}px`;
+count++;
+});
+
+yesBtn.addEventListener("click", () => {
+if (!accepted) {
+  showMedia(images[6]);
+  text.innerText = "വാ നമുക്ക് കല്യാണം കഴിക്കാം!! 💍💖";
+  noBtn.style.display = "none";
+  yesBtn.innerText = "View Your Memories 💕";
+  yesBtn.style.background = "linear-gradient(135deg,#ff4d6d,#ff758c)";
+  accepted = true;
+  confetti({
+    particleCount:200,spread:360,origin:{x:0.5,y:0.5},
+    colors:["#ff4d6d","#ff69b4","#ff0000","#ff9a9e"]
+  });
+} else {
+  yesBtn.style.display="none";
+  text.innerText = "💌 Our Love Story";
+
+  const memoryImages = [
+  {src:"{{ url_for('static', filename='images/first_message.jpeg') }}",caption:"April 24, 2024 💬 — Our first message."},
+  {src:"{{ url_for('static', filename='images/date.jpeg') }}",caption:"October 30 2025, Our First Date ❤️"},
+  {src:"{{ url_for('static', filename='images/movie.jpeg') }}",caption:"October 30 2025, First Movie Together 🎬"},
+  {src:"{{ url_for('static', filename='images/trip.jpeg') }}",caption:"October 30 2025, Our First Trip"},
+  {src:"{{ url_for('static', filename='images/pennukaanal.jpeg') }}",caption:"October 26 2025, Pennukaanal 💍 — A Beautiful Beginning"}
+  ];
+
+  let currentSlide=0;
+  responseButtons.innerHTML=`
+  <div class="mt-6 w-full flex flex-col items-center">
+    <img id="memorySlider" src="${memoryImages[0].src}" class="fixed-img transition-all duration-500"/>
+    <p id="memoryCaption" class="mt-5 text-xl font-bold text-white text-center px-6 drop-shadow-lg">${memoryImages[0].caption}</p>
+    <div class="flex gap-6 mt-4">
+      <button id="prevBtn" class="premium-btn glow-yellow px-6 py-2">❮</button>
+      <button id="nextBtn" class="premium-btn glow-green px-6 py-2">❯</button>
+    </div>
+  </div>
+  `;
+
+  const slider = document.getElementById("memorySlider");
+  const caption = document.getElementById("memoryCaption");
+  function updateSlide() { slider.src=memoryImages[currentSlide].src; caption.innerText=memoryImages[currentSlide].caption; }
+  document.getElementById("nextBtn").addEventListener("click",()=>{ currentSlide=(currentSlide+1)%memoryImages.length; updateSlide(); });
+  document.getElementById("prevBtn").addEventListener("click",()=>{ currentSlide=(currentSlide-1+memoryImages.length)%memoryImages.length; updateSlide(); });
+}
+
+});
+})();
+</script>
+
+</body>
+</html>
